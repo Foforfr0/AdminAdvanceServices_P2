@@ -1,0 +1,70 @@
+{
+    "hrSystemUptime": {
+        "OID": ".1.3.6.1.2.1.25.1.1.0",
+        "Valor": "925699"
+    },
+    "hrSystemDate": {
+        "OID": ".1.3.6.1.2.1.25.1.2.0",
+        "Valor": "0x07e90905120d0f002b0000"
+    },
+    "hrSystemInitialLoadDevice": {
+        "OID": ".1.3.6.1.2.1.25.1.3.0",
+        "Valor": "393216"
+    },
+    "hrSystemInitialLoadParameters": {
+        "OID": ".1.3.6.1.2.1.25.1.4.0",
+        "Valor": "0x424f4f545f494d4147453d2f766d6c696e757a2d362e382e302d37392d67656e6572696320726f6f743d2f6465762f6d61707065722f7562756e74752d2d76672d7562756e74752d2d6c7620726f0a"
+    },
+    "hrSystemNumUsers": {
+        "OID": ".1.3.6.1.2.1.25.1.5.0",
+        "Valor": "1"
+    },
+    "hrSystemProcesses": {
+        "OID": ".1.3.6.1.2.1.25.1.6.0",
+        "Valor": "100"
+    },
+    "hrSystemMaxProcesses": {
+        "OID": ".1.3.6.1.2.1.25.1.7.0",
+        "Valor": "0"
+    },
+    "hrDeviceDescr.196608": {
+        "OID": ".1.3.6.1.2.1.25.3.2.1.3.196608",
+        "Valor": "GenuineIntel: Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz"
+    },
+    "hrMemorySize": {
+        "OID": ".1.3.6.1.2.1.25.2.2.0",
+        "Valor": "2015420"
+    },
+    "hrStorageIndex.1": {
+        "OID": ".1.3.6.1.2.1.25.2.3.1.1.1",
+        "Valor": "1"
+    },
+    "hrStorageType.1": {
+        "OID": ".1.3.6.1.2.1.25.2.3.1.2.1",
+        "Valor": "1.3.6.1.2.1.25.2.1.2"
+    },
+    "hrStorageDescr.1": {
+        "OID": ".1.3.6.1.2.1.25.2.3.1.3.1",
+        "Valor": "Physical memory"
+    },
+    "hrStorageAllocationUnits.1": {
+        "OID": ".1.3.6.1.2.1.25.2.3.1.1.1",
+        "Valor": "1"
+    },
+    "hrStorageSize.1": {
+        "OID": ".1.3.6.1.2.1.25.2.3.1.5.1",
+        "Valor": "2015420"
+    },
+    "hrStorageUsed.1": {
+        "OID": ".1.3.6.1.2.1.25.2.3.1.6.1",
+        "Valor": "794572"
+    },
+    "sysDescr": {
+        "OID": ".1.3.6.1.2.1.1.1.0",
+        "Valor": "Linux tocino-server 6.8.0-79-generic #79-Ubuntu SMP PREEMPT_DYNAMIC Tue Aug 12 14:42:46 UTC 2025 x86_64"
+    },
+    "sysServices": {
+        "OID": ".1.3.6.1.2.1.1.7.0",
+        "Valor": "72"
+    }
+}
