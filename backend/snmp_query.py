@@ -4,7 +4,6 @@ import json
 import xml.etree.ElementTree as ET
 from pysnmp.hlapi.v3arch.asyncio import *
 
-# Diccionario con nombres para cada OID
 OIDs = {
     'sysDescr': '.1.3.6.1.2.1.1.1.0',
     'sysServices': '.1.3.6.1.2.1.1.7.0',

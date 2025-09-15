@@ -1,9 +1,24 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import JSONResponse, Response
+from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from snmp_query import get_snmp_data, export_to_xml
 
 app = FastAPI()
+
+# Orígenes permitidos (puedes usar ["*"] para permitir todos)
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # lista de orígenes permitidos
+    allow_credentials=True,
+    allow_methods=["*"],    # métodos HTTP permitidos (GET, POST, etc)
+    allow_headers=["*"],    # cabeceras permitidas
+)
 
 @app.get("/api/snmp/")
 async def snmp_api(ip: str = Query(..., description="IP del dispositivo SNMP"),
