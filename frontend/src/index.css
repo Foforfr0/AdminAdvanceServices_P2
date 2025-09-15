@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: #1e2939;
+  background: linear-gradient(135deg, #fce7f3 0%, #dbeafe 100%);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100dvh;
+  width: 100dvw;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  display: grid;
+  min-height: 100dvh;
+  grid-template-rows: auto 1fr;
+}
