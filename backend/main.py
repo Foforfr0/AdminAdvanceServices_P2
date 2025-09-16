@@ -3,8 +3,12 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from snmp_query import get_snmp_data, export_to_xml
+import nmap
 
 app = FastAPI()
+
+NETWORK_RANGE = "192.168.1.0/24"
+
 
 # Orígenes permitidos (puedes usar ["*"] para permitir todos)
 origins = [
@@ -19,6 +23,12 @@ app.add_middleware(
     allow_methods=["*"],    # métodos HTTP permitidos (GET, POST, etc)
     allow_headers=["*"],    # cabeceras permitidas
 )
+
+def scan_network(network_range: str):
+    nm = nmap.PortScanner()
+    nm.scan(hosts=network_range, arguments='-sn -T4')
+    active_hosts = [host for host in nm.all_hosts() if nm[host].state() == 'up']
+    return active_hosts
 
 @app.get("/api/snmp/")
 async def snmp_api(ip: str = Query(..., description="IP del dispositivo SNMP"),
@@ -40,3 +50,29 @@ async def snmp_api(ip: str = Query(..., description="IP del dispositivo SNMP"),
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener datos SNMP: {str(e)}")
+
+
+@app.get("/api/snmp/network-scan/")
+async def snmp_network_scan(network: str = Query(NETWORK_RANGE, description="Rango de red para escanear")):
+    try:
+        active_hosts = await asyncio.to_thread(scan_network, network)
+
+        if not active_hosts:
+            return JSONResponse(content={"message": f"No se encontraron dispositivos activos en la red {network}"})
+    
+        tasks = [get_snmp_data(ip) for ip in active_hosts]
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        snmp_results = []
+        for ip, data in zip(active_hosts, results):
+            if isinstance(data, Exception):
+                snmp_results.append({"IP": ip, "Error": str(data)})
+            else:
+                snmp_results.append({"IP": ip, "Data": data})
+        
+        return JSONResponse(content={"active_devices": snmp_results})
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al escanear la red: {str(e)}")
+        
