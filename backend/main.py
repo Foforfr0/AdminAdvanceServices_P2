@@ -1,8 +1,14 @@
 from fastapi import FastAPI, Query, HTTPException
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+
 import asyncio
 from snmp_query import get_snmp_data, export_to_xml
+from io import BytesIO
 import nmap
 
 app = FastAPI()
@@ -75,4 +81,45 @@ async def snmp_network_scan(network: str = Query(NETWORK_RANGE, description="Ran
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al escanear la red: {str(e)}")
+
+
+@app.get("/api/snmp/report")
+async def generate_snmp_report():
+    try:
+        active_hosts = await asyncio.to_thread(scan_network, NETWORK_RANGE)
+
+        if not active_hosts:
+            return JSONResponse(content={"message": f"No se encontraron dispositivos activos en la red {NETWORK_RANGE}"})
+    
+        tasks = [get_snmp_data(ip) for ip in active_hosts]
         
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        flowables = []
+
+        flowables.append(Paragraph("<b>Reporte SNMP de Dispositivos en la Red</b>", styles['Title']))
+        flowables.append(Spacer(1, 12))
+
+        for ip, data in zip(active_hosts, results):
+            flowables.append(Paragraph(f"<b>Dispositivo: {ip}</b>", styles['Heading2']))
+            if isinstance(data, Exception):
+                flowables.append(Paragraph(f"Error al obtener datos SNMP: {str(data)}", styles['Normal']))
+            else:
+                for name, content in data.items():
+                    flowables.append(Paragraph(f"<b>{name}:</b> {content['Valor']}", styles['Normal']))
+            flowables.append(Spacer(1, 12))
+        
+        doc.build(flowables)
+        buffer.seek(0)
+
+        headers = { 
+            'Content-Disposition': 'attachment; filename="snmp_reporte.pdf"'
+        }
+
+        return StreamingResponse(buffer, media_type='application/pdf', headers=headers)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al generar el reporte SNMP: {str(e)}")
