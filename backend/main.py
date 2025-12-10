@@ -37,25 +37,78 @@ def scan_network(network_range: str):
     return active_hosts
 
 @app.get("/api/snmp/")
-async def snmp_api(ip: str = Query(..., description="IP del dispositivo SNMP"),
-                   format: str = Query("json", description="Formato de salida: json o xml")):
-
+async def snmp_api(
+    ip: str | None = Query(
+        None,
+        description="IP del dispositivo SNMP. Si se omite, se escanea toda la red."
+    ),
+    network: str = Query(
+        NETWORK_RANGE,
+        description="Rango de red para escanear cuando no se proporciona 'ip' (ej. 192.168.10.0/24)"
+    ),
+    format: str = Query(
+        "json",
+        description="Formato de salida: json o xml (xml solo para una IP específica)"
+    )
+):
     try:
-        # Obtener datos SNMP
-        data = await get_snmp_data(ip)
+        # Validar formato
+        fmt = format.lower()
+        if fmt not in ("json", "xml"):
+            raise HTTPException(
+                status_code=400,
+                detail="Formato no válido. Usa 'json' o 'xml'."
+            )
 
-        if format.lower() == "json":
-            return JSONResponse(content=data)
+        if ip:
+            data = await get_snmp_data(ip)
 
-        elif format.lower() == "xml":
-            xml_data = export_to_xml(data)
-            return Response(content=xml_data, media_type="application/xml")
+            if fmt == "json":
+                return JSONResponse(content={"IP": ip, "Data": data})
+            else:  # xml
+                xml_data = export_to_xml(data)
+                return Response(content=xml_data, media_type="application/xml")
 
+        active_hosts = await asyncio.to_thread(scan_network, network)
+
+        if not active_hosts:
+            return JSONResponse(
+                content={"message": f"No se encontraron dispositivos activos en la red {network}"}
+            )
+
+        tasks = [get_snmp_data(host_ip) for host_ip in active_hosts]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        snmp_results = []
+        for host_ip, result in zip(active_hosts, results):
+            if isinstance(result, Exception):
+                snmp_results.append({
+                    "IP": host_ip,
+                    "Error": str(result)
+                })
+            else:
+                snmp_results.append({
+                    "IP": host_ip,
+                    "Data": result
+                })
+
+        if fmt == "json":
+            return JSONResponse(content={"active_devices": snmp_results})
         else:
-            raise HTTPException(status_code=400, detail="Formato no válido. Usa 'json' o 'xml'.")
 
+            raise HTTPException(
+                status_code=400,
+                detail="El formato XML solo está soportado cuando se especifica una IP concreta."
+            )
+
+    except HTTPException:
+        # ya formateado arriba
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al obtener datos SNMP: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener datos SNMP: {str(e)}"
+        )
 
 
 @app.get("/api/snmp/network-scan/")
